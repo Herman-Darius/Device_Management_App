@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="device_management_app.client/device_management_app.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="Device_Management_App.Server/Device_Management_App.Server.csproj" />
+</Solution>
