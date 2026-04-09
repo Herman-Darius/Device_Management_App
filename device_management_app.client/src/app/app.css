@@ -170,6 +170,6 @@ th:last-child, td:last-child {
 }
 
   .btn-danger:hover {
-    background-color: #a82a00; /* Darker red on hover */
+    background-color: #a82a00;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }

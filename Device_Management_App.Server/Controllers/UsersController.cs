@@ -21,5 +21,16 @@ namespace Device_Management_App.Server.Controllers
             var users = await _context.Users.ToListAsync();
             return Ok(users);
         }
+
+        [HttpPatch("{id}/role")]
+        public async Task<IActionResult> UpdateRole(int id, [FromBody] string newRole)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound();
+
+            user.Role = newRole;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }

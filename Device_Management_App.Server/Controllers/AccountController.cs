@@ -2,6 +2,10 @@
 using Device_Management_App.Server.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Device_Management_App.Server.Controllers
 {
@@ -30,7 +34,30 @@ namespace Device_Management_App.Server.Controllers
                 .FirstOrDefaultAsync(u => u.Email == login.Email && u.Password == login.Password);
 
             if (user == null) return Unauthorized("Invalid email or password.");
-            return Ok(user);
+            var claims = new[]
+            {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Role, user.Role),
+        new Claim("UserName", user.Name)
+    };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("YourVeryLongSecretKey_MakeSureItIsAtLeast32Chars!"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: "DeviceApp",
+                audience: "DeviceAppUsers",
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds
+            );
+
+            return Ok(new
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                User = new { user.Id, user.Name, user.Email, user.Role }
+            });
         }
     }
 }
