@@ -3,6 +3,7 @@
     <File Path="CreateSchema.sql" />
     <File Path="SeedData.sql" />
   </Folder>
+  <Project Path="Device_Management.Tests/Device_Management.Tests.csproj" Id="3d101d27-dcc5-4f07-ae79-83e6dca96202" />
   <Project Path="device_management_app.client/device_management_app.client.esproj">
     <Build />
     <Deploy />

@@ -1,6 +1,4 @@
-﻿using Device_Management_App.Server.Data;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Device_Management_App.Server.Controllers
 {
@@ -8,28 +6,26 @@ namespace Device_Management_App.Server.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IUserService _userService;
 
-        public UsersController(AppDbContext context)
+        public UsersController(IUserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
-            var users = await _context.Users.ToListAsync();
+            var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }
 
         [HttpPatch("{id}/role")]
         public async Task<IActionResult> UpdateRole(int id, [FromBody] string newRole)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return NotFound();
+            var success = await _userService.UpdateUserRoleAsync(id, newRole);
+            if (!success) return NotFound();
 
-            user.Role = newRole;
-            await _context.SaveChangesAsync();
             return NoContent();
         }
     }

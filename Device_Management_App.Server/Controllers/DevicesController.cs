@@ -1,8 +1,5 @@
-﻿using Device_Management_App.Server.Data;
-using Device_Management_App.Server.Models;
+﻿using Device_Management_App.Server.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace Device_Management_App.Server.Controllers
 {
@@ -10,140 +7,65 @@ namespace Device_Management_App.Server.Controllers
     [ApiController]
     public class DevicesController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IDeviceService _deviceService;
 
-        public DevicesController(AppDbContext context)
+        public DevicesController(IDeviceService deviceService)
         {
-            _context = context;
+            _deviceService = deviceService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Device>>> GetDevices()
-        {
-            return await _context.Devices.Include(d => d.AssignedUser).ToListAsync();
-        }
+        public async Task<IActionResult> GetDevices() => Ok(await _deviceService.GetAllDevicesAsync());
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Device>> GetDevice(int id)
+        public async Task<IActionResult> GetDevice(int id)
         {
-            var device = await _context.Devices.Include(d => d.AssignedUser)
-                                               .FirstOrDefaultAsync(d => d.Id == id);
-            if (device == null) return NotFound();
-            return device;
+            var device = await _deviceService.GetDeviceByIdAsync(id);
+            return device == null ? NotFound() : Ok(device);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Device>> PostDevice(Device device)
+        public async Task<IActionResult> PostDevice(Device device)
         {
-            var exists = await _context.Devices
-                .AnyAsync(d => d.Name.ToLower() == device.Name.ToLower());
+            var result = await _deviceService.CreateDeviceAsync(device);
+            if (!result.Success) return BadRequest(result.Message);
 
-            if (exists) return BadRequest("A device with this name already exists.");
-
-            _context.Devices.Add(device);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetDevice), new { id = device.Id }, device);
+            return CreatedAtAction(nameof(GetDevice), new { id = result.Device!.Id }, result.Device);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDevice(int id, Device device)
         {
-            if (id != device.Id) return BadRequest();
-            _context.Entry(device).State = EntityState.Modified;
-            try { await _context.SaveChangesAsync(); }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Devices.Any(e => e.Id == id)) return NotFound();
-                else throw;
-            }
-            return NoContent();
+            var success = await _deviceService.UpdateDeviceAsync(id, device);
+            return success ? NoContent() : BadRequest();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDevice(int id)
         {
-            var device = await _context.Devices.FindAsync(id);
-            if (device == null) return NotFound();
-            _context.Devices.Remove(device);
-            await _context.SaveChangesAsync();
-            return NoContent();
+            var success = await _deviceService.DeleteDeviceAsync(id);
+            return success ? NoContent() : NotFound();
         }
 
         [HttpPatch("{id}/assign/{userId}")]
-        public async Task<IActionResult> AssignDevice(int id, int userId)
+        public async Task<IActionResult> Assign(int id, int userId)
         {
-            var device = await _context.Devices.FindAsync(id);
-            if (device == null) return NotFound();
-            device.AssignedUserId = userId;
-            await _context.SaveChangesAsync();
-            return NoContent();
+            var success = await _deviceService.AssignDeviceAsync(id, userId);
+            return success ? NoContent() : NotFound();
         }
 
         [HttpPatch("{id}/unassign")]
-        public async Task<IActionResult> UnassignDevice(int id)
+        public async Task<IActionResult> Unassign(int id)
         {
-            var device = await _context.Devices.FindAsync(id);
-            if (device == null) return NotFound();
-            device.AssignedUserId = null;
-            await _context.SaveChangesAsync();
-            return NoContent();
+            var success = await _deviceService.UnassignDeviceAsync(id);
+            return success ? NoContent() : NotFound();
         }
 
         [HttpPost("generate-description")]
         public async Task<IActionResult> GenerateDescription([FromBody] Device device)
         {
-            var model = "gemini-3-flash-preview";
-            var apiKey = "AIzaSyDqXb_OSc_y2HWxwA7SEtWKgFZw5zWQIDU";
-            var apiUrl = $"https://generativelanguage.googleapis.com/v1alpha/models/{model}:generateContent?key={apiKey}";
-
-            using var client = new HttpClient();
-
-            var prompt = $"Generate a concise, 20-word description for a {device.Manufacturer} {device.Name} " +
-                         $"with {device.Processor} and {device.RAMAmount} RAM running {device.OS}. " +
-                         "Focus on technical performance.";
-
-            var requestBody = new
-            {
-                contents = new[] {
-            new {
-                role = "user",
-                parts = new[] { new { text = prompt } }
-            }
-        },
-                generationConfig = new
-                {
-                    thinking_config = new
-                    {
-                        thinking_level = "HIGH"
-                    }
-                }
-            };
-
-            try
-            {
-                var response = await client.PostAsJsonAsync(apiUrl, requestBody);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorDetail = await response.Content.ReadAsStringAsync();
-                    return BadRequest($"AI API Error: {errorDetail}");
-                }
-
-                using JsonDocument doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
-                JsonElement root = doc.RootElement;
-
-                string generatedText = root.GetProperty("candidates")[0]
-                                           .GetProperty("content")
-                                           .GetProperty("parts")[0]
-                                           .GetProperty("text")
-                                           .GetString();
-
-                return Ok(new { description = generatedText?.Trim() });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("System Error during AI generation: " + ex.Message);
-            }
+            var (success, description) = await _deviceService.GenerateAIDescriptionAsync(device);
+            return success ? Ok(new { description }) : BadRequest(description);
         }
     }
 }
