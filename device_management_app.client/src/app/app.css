@@ -157,3 +157,19 @@ button:disabled {
 th:last-child, td:last-child {
   min-width: 220px;
 }
+
+.btn-danger {
+  background-color: #d83b01; /* Modern Office Red */
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+  .btn-danger:hover {
+    background-color: #a82a00; /* Darker red on hover */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }

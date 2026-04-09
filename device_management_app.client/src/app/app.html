@@ -39,7 +39,9 @@
   <div *ngIf="selectedDevice" class="table-container" style="margin-top: 2rem; padding: 2rem; border-left: 4px solid var(--primary);">
     <h2>Technical Specifications: {{ selectedDevice.name }}</h2>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-      <p><strong>Processor:</strong> {{ selectedDevice.processor }}</p> <p><strong>RAM:</strong> {{ selectedDevice.ramAmount }}</p>       <p><strong>Full Description:</strong> {{ selectedDevice.description || 'No description provided.' }}</p>
+      <p><strong>Processor:</strong> {{ selectedDevice.processor }}</p>
+      <p><strong>RAM:</strong> {{ selectedDevice.ramAmount }}</p>
+      <p><strong>Full Description:</strong> {{ selectedDevice.description || 'No description provided.' }}</p>
       <p><strong>Type:</strong> {{ selectedDevice.type }}</p>
     </div>
     <button class="btn btn-primary" (click)="selectedDevice = null" style="margin-top: 1rem;">Close Details</button>
@@ -93,7 +95,7 @@
 
         <div class="form-group" style="grid-column: span 2;">
           <label>Description</label>
-          <textarea formControlName="description" class="form-input" rows="2" placeholder="Describe the device's condition or intended use..."></textarea>
+          <textarea formControlName="description" class="form-input" rows="2" placeholder="Describe the device's condition..."></textarea>
         </div>
 
       </div>

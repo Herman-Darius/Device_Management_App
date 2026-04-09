@@ -61,10 +61,18 @@ export class App implements OnInit {
   }
 
   deleteDevice(id: number) {
-    if (confirm('Are you sure you want to delete this device?')) {
-      this.http.delete(`https://localhost:7249/api/devices/${id}`).subscribe(() => {
-        this.getDevices();
-        alert('Device deleted successfully');
+    // Requirement 5: Delete directly from the list with confirmation
+    if (confirm('Are you sure you want to permanently delete this device?')) {
+      this.http.delete(`https://localhost:7249/api/devices/${id}`).subscribe({
+        next: () => {
+          // Refresh the signal-based list to show the item is gone
+          this.getDevices();
+          alert('Device removed from the database.');
+        },
+        error: (err) => {
+          console.error('Delete operation failed:', err);
+          alert('Could not delete the device. It may be linked to other records.');
+        }
       });
     }
   }
