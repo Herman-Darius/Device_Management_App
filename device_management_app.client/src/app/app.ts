@@ -23,6 +23,7 @@ export class App implements OnInit {
   public showAuthForm = true;
   public isRegisterMode = false;
   public showUserManagement = false;
+  public searchQuery = '';
 
   constructor(private http: HttpClient, private fb: FormBuilder) {
     this.initForm();
@@ -142,6 +143,29 @@ export class App implements OnInit {
         }
       });
     }
+  }
+
+  onSearch() {
+    const query = this.searchQuery.trim();
+
+    if (!query) {
+      this.getDevices();
+      return;
+    }
+    this.http.get<Device[]>(`https://localhost:7249/api/devices/search?q=${query}`).subscribe({
+      next: (results) => {
+        this.devices.set(results);
+      },
+      error: (err) => {
+        console.error('Search failed:', err);
+        alert('Search encountered an error.');
+      }
+    });
+  }
+
+  clearSearch() {
+    this.searchQuery = '';
+    this.getDevices();
   }
 
   deleteDevice(id: number) {

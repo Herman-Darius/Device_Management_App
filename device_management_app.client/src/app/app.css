@@ -173,3 +173,52 @@ th:last-child, td:last-child {
     background-color: #a82a00;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
+/* Styling for the Search Container */
+.search-container {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #fcfcfc;
+  border-radius: 8px;
+  border: 1px solid #edebe9;
+}
+
+/* Fix for the "Invisible" Search Button */
+.btn-primary {
+  background-color: #0078d4; /* A standard Microsoft-style blue */
+  color: white !important; /* Force the text to be white */
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+  .btn-primary:hover {
+    background-color: #005a9e;
+  }
+
+/* Ensure the Search Input matches your theme */
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #605e5c;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* Clear Button styling */
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid #605e5c;
+  color: #323130;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+  .btn-outline:hover {
+    background-color: #f3f2f1;
+  }

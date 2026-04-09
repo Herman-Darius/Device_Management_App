@@ -67,5 +67,11 @@ namespace Device_Management_App.Server.Controllers
             var (success, description) = await _deviceService.GenerateAIDescriptionAsync(device);
             return success ? Ok(new { description }) : BadRequest(description);
         }
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<Device>>> SearchDevices([FromQuery] string q)
+        {
+            var results = await _deviceService.SearchDevicesAsync(q);
+            return Ok(results);
+        }
     }
 }

@@ -10,4 +10,5 @@ public interface IDeviceService
     Task<bool> AssignDeviceAsync(int id, int userId);
     Task<bool> UnassignDeviceAsync(int id);
     Task<(bool Success, string Description)> GenerateAIDescriptionAsync(Device device);
+    Task<IEnumerable<Device>> SearchDevicesAsync(string query);
 }

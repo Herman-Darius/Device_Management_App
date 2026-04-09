@@ -93,7 +93,16 @@
     </div>
 
     <h1 style="text-align: center; border: none;">{{ title() }}</h1>
-
+    <div class="table-container" style="margin-bottom: 1.5rem; padding: 1rem; display: flex; gap: 1rem; align-items: center;">
+      <input type="text"
+             [(ngModel)]="searchQuery"
+             placeholder="Search by name, manufacturer, RAM..."
+             (keyup.enter)="onSearch()"
+             class="form-input"
+             style="flex: 1; margin: 0;" />
+      <button (click)="onSearch()" class="btn btn-primary">Search</button>
+      <button (click)="clearSearch()" class="btn btn-outline" *ngIf="searchQuery">Clear</button>
+    </div>
     <div *ngIf="devices().length > 0; else noData" class="table-container">
       <table>
         <thead>

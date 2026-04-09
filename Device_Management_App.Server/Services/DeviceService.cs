@@ -85,4 +85,38 @@ public class DeviceService : IDeviceService
         string text = doc.RootElement.GetProperty("candidates")[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString();
         return (true, text?.Trim() ?? "");
     }
+
+    public async Task<IEnumerable<Device>> SearchDevicesAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return await GetAllDevicesAsync();
+
+        var normalizedQuery = query.ToLower().Trim();
+        var tokens = normalizedQuery.Split(new[] { ' ', ',', '.', '-' }, StringSplitOptions.RemoveEmptyEntries);
+
+        var allDevices = await _context.Devices
+            .Include(d => d.AssignedUser)
+            .ToListAsync();
+
+        var rankedResults = allDevices
+            .Select(device =>
+            {
+                int score = 0;
+                foreach (var token in tokens)
+                {
+                    if (device.Name.ToLower().Contains(token)) score += 10;
+                    if (device.Manufacturer.ToLower().Contains(token)) score += 5;
+                    if (device.Processor.ToLower().Contains(token)) score += 3;
+                    if (device.RAMAmount.ToLower().Contains(token)) score += 1;
+                }
+                return new { Device = device, Score = score };
+            })
+            .Where(x => x.Score > 0)
+            .OrderByDescending(x => x.Score)
+            .ThenBy(x => x.Device.Name)
+            .Select(x => x.Device)
+            .ToList();
+
+        return rankedResults;
+    }
 }
