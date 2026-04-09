@@ -1,8 +1,16 @@
+USE DeviceManagementDB;
+GO
+
+DROP TABLE IF EXISTS Devices;
+DROP TABLE IF EXISTS Users;
+
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Users')
 BEGIN
     CREATE TABLE Users (
         Id INT PRIMARY KEY IDENTITY(1,1),
         Name NVARCHAR(100) NOT NULL,
+        Email NVARCHAR(100) NOT NULL,
+        Password NVARCHAR(100) NOT NULL,
         Role NVARCHAR(100) NOT NULL,
         Location NVARCHAR(100) NOT NULL
     );
@@ -22,6 +30,6 @@ BEGIN
         Description NVARCHAR(MAX) NULL,
         AssignedUserId INT NULL,
         CONSTRAINT FK_Devices_Users FOREIGN KEY (AssignedUserId) 
-            REFERENCES Users(Id) ON DELETE SET NULL
+            REFERENCES Users(Id) ON DELETE SET NULL --
     );
 END

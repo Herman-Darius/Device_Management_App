@@ -1,120 +1,208 @@
 <div class="container">
-  <h1>{{ title() }}</h1>
 
-  <div *ngIf="devices().length > 0; else noData" class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Manufacturer</th>
-          <th>OS</th>
-          <th>User</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let device of devices()">
-          <td><strong>{{ device.name }}</strong></td>
-          <td>{{ device.manufacturer }}</td>
-          <td>{{ device.os }} v{{ device.osVersion }}</td>
-          <td>
-            <span class="badge">
-              {{ device.assignedUser?.name || 'Unassigned' }}
-            </span>
-          </td>
-          <td>
-            <div style="display: flex; gap: 0.5rem;">
-              <button class="btn btn-outline" (click)="selectDevice(device)">
-                {{ selectedDevice?.id === device.id ? 'Hide' : 'View' }}
-              </button>
-              <button class="btn btn-outline" (click)="editDevice(device)">Edit</button>
-              <button class="btn btn-danger" (click)="deleteDevice(device.id)">Delete</button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <div class="table-container" style="margin-bottom: 2rem; padding: 2rem; border-bottom: 4px solid var(--primary);" *ngIf="!currentUser()">
+    <h2 style="margin-top: 0; color: var(--primary);">
+      {{ isRegisterMode ? 'Create New Account' : 'Welcome Back' }}
+    </h2>
+    <p style="margin-bottom: 1.5rem; color: #605e5c;">
+      {{ isRegisterMode ? 'Please provide your details to register.' : 'Please sign in to manage the hardware inventory.' }}
+    </p>
 
-  <div *ngIf="selectedDevice" class="table-container" style="margin-top: 2rem; padding: 2rem; border-left: 4px solid var(--primary);">
-    <h2>Technical Specifications: {{ selectedDevice.name }}</h2>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-      <p><strong>Processor:</strong> {{ selectedDevice.processor }}</p>
-      <p><strong>RAM:</strong> {{ selectedDevice.ramAmount }}</p>
-      <p><strong>Full Description:</strong> {{ selectedDevice.description || 'No description provided.' }}</p>
-      <p><strong>Type:</strong> {{ selectedDevice.type }}</p>
-    </div>
-    <button class="btn btn-primary" (click)="selectedDevice = null" style="margin-top: 1rem;">Close Details</button>
-  </div>
+    <form [formGroup]="authForm" (ngSubmit)="onAuthSubmit()">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;">
 
-  <div class="table-container" *ngIf="deviceForm" style="margin-top: 2rem; padding: 2rem;">
-    <h2>{{ isEditing ? 'Edit Existing Device' : 'Add New Device' }}</h2>
-
-    <form [formGroup]="deviceForm!" (ngSubmit)="onSubmit()">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-
-        <div class="form-group">
-          <label>Device Name *</label>
-          <input formControlName="name" class="form-input" placeholder="e.g. Latitude 5420">
+        <div class="form-group" *ngIf="isRegisterMode">
+          <label>Full Name *</label>
+          <input formControlName="name" class="form-input" placeholder="e.g. John Doe">
         </div>
 
         <div class="form-group">
-          <label>Manufacturer *</label>
-          <input formControlName="manufacturer" class="form-input" placeholder="e.g. Dell">
+          <label>Email Address *</label>
+          <input formControlName="email" type="email" class="form-input" placeholder="name@company.com">
         </div>
 
         <div class="form-group">
-          <label>Processor *</label>
-          <input formControlName="processor" class="form-input" placeholder="e.g. Intel Core i7">
+          <label>Password *</label>
+          <input formControlName="password" type="password" class="form-input" placeholder="Enter password">
         </div>
 
-        <div class="form-group">
-          <label>RAM Amount *</label>
-          <input formControlName="ramAmount" class="form-input" placeholder="e.g. 16GB">
-        </div>
-
-        <div class="form-group">
-          <label>Operating System *</label>
-          <input formControlName="os" class="form-input" placeholder="e.g. Windows">
-        </div>
-
-        <div class="form-group">
-          <label>OS Version *</label>
-          <input formControlName="osVersion" class="form-input" placeholder="e.g. 11">
-        </div>
-
-        <div class="form-group">
-          <label>Assign to User</label>
-          <select formControlName="assignedUserId" class="form-input">
-            <option [ngValue]="null">-- Unassigned --</option>
-            <option *ngFor="let user of users()" [ngValue]="user.id">
-              {{ user.name }} ({{ user.role }})
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group" style="grid-column: span 2;">
-          <label>Description</label>
-          <textarea formControlName="description" class="form-input" rows="2" placeholder="Describe the device's condition..."></textarea>
-        </div>
-
+        <ng-container *ngIf="isRegisterMode">
+          <div class="form-group">
+            <label>Job Role</label>
+            <input formControlName="role" class="form-input" placeholder="e.g. System Admin">
+          </div>
+          <div class="form-group">
+            <label>Office Location</label>
+            <input formControlName="location" class="form-input" placeholder="e.g. London Office">
+          </div>
+        </ng-container>
       </div>
 
-      <div class="button-row" style="gap: 1rem;">
-        <button *ngIf="isEditing" type="button" class="btn btn-outline" (click)="cancelEdit()">
-          Cancel Edit
-        </button>
-        <button type="submit" class="btn btn-success" [disabled]="!deviceForm.valid">
-          {{ isEditing ? 'Update Device' : 'Save Device to Database' }}
+      <div class="button-row" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <a href="javascript:void(0)" (click)="toggleAuthMode()" style="color: var(--primary); font-size: 0.9rem; font-weight: 600; text-decoration: none;">
+          {{ isRegisterMode ? '← Back to Login' : 'No account? Create one here' }}
+        </a>
+        <button type="submit" class="btn btn-success" [disabled]="!authForm.valid">
+          {{ isRegisterMode ? 'Register Account' : 'Sign In' }}
         </button>
       </div>
-
     </form>
   </div>
 
+  <ng-container *ngIf="currentUser()">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #edebe9;">
+      <h1 style="margin: 0; border: none;">{{ title() }}</h1>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="text-align: right;">
+          <div style="font-size: 0.8rem; color: #605e5c;">Logged in as</div>
+          <strong>{{ currentUser().name }}</strong>
+        </div>
+        <button class="btn btn-outline" (click)="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div *ngIf="devices().length > 0; else noData" class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Device Name</th>
+            <th>Manufacturer</th>
+            <th>Operating System</th>
+            <th>Current Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let device of devices()">
+            <td><strong>{{ device.name }}</strong></td>
+            <td>{{ device.manufacturer }}</td>
+            <td>{{ device.os }} v{{ device.osVersion }}</td>
+            <td>
+              <span class="badge"
+                    [style.background]="device.assignedUserId ? '#dff6dd' : '#f3f2f1'"
+                    [style.color]="device.assignedUserId ? '#107c10' : '#323130'">
+                {{ device.assignedUser?.name || 'Available' }}
+              </span>
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-outline" (click)="selectDevice(device)">
+                  {{ selectedDevice?.id === device.id ? 'Hide' : 'View' }}
+                </button>
+
+                <button class="btn btn-outline" (click)="editDevice(device)">Edit</button>
+
+                <button *ngIf="!device.assignedUserId"
+                        class="btn btn-success"
+                        (click)="assignToMe(device.id)">
+                  Claim
+                </button>
+
+                <button *ngIf="device.assignedUserId === currentUser().id"
+                        class="btn btn-danger"
+                        (click)="unassign(device.id)">
+                  Release
+                </button>
+
+                <button class="btn btn-danger" (click)="deleteDevice(device.id)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="selectedDevice" class="table-container" style="margin-top: 2rem; padding: 2rem; border-left: 4px solid var(--primary); background: #fcfcfc;">
+      <h3 style="margin-top: 0; color: var(--primary);">Specifications: {{ selectedDevice.name }}</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+        <div>
+          <label style="font-size: 0.75rem; color: #605e5c; display: block;">Processor</label>
+          <strong>{{ selectedDevice.processor }}</strong>
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; color: #605e5c; display: block;">RAM Memory</label>
+          <strong>{{ selectedDevice.ramAmount }}</strong>
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; color: #605e5c; display: block;">Hardware Type</label>
+          <strong>{{ selectedDevice.type }}</strong>
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label style="font-size: 0.75rem; color: #605e5c; display: block;">Description</label>
+          <p style="margin: 0.2rem 0 0 0;">{{ selectedDevice.description || 'No additional details provided.' }}</p>
+        </div>
+      </div>
+      <button class="btn btn-primary" (click)="selectedDevice = null" style="margin-top: 1.5rem;">Close Details</button>
+    </div>
+
+    <div class="table-container" *ngIf="deviceForm" style="margin-top: 2rem; padding: 2rem;">
+      <h3 style="margin-top: 0;">{{ isEditing ? 'Edit Existing Record' : 'Register New Hardware' }}</h3>
+      <form [formGroup]="deviceForm!" (ngSubmit)="onSubmit()">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+
+          <div class="form-group">
+            <label>Device Name *</label>
+            <input formControlName="name" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label>Manufacturer *</label>
+            <input formControlName="manufacturer" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label>Processor *</label>
+            <input formControlName="processor" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label>RAM *</label>
+            <input formControlName="ramAmount" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label>OS Name *</label>
+            <input formControlName="os" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label>OS Version *</label>
+            <input formControlName="osVersion" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label>Admin User Override</label>
+            <select formControlName="assignedUserId" class="form-input">
+              <option [ngValue]="null">-- Available --</option>
+              <option *ngFor="let user of users()" [ngValue]="user.id">{{ user.name }}</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Description</label>
+            <textarea formControlName="description" class="form-input" rows="2"></textarea>
+          </div>
+
+        </div>
+
+        <div class="button-row" style="gap: 1rem;">
+          <button *ngIf="isEditing" type="button" class="btn btn-outline" (click)="cancelEdit()">
+            Cancel Edit
+          </button>
+          <button type="submit" class="btn btn-success" [disabled]="!deviceForm.valid">
+            {{ isEditing ? 'Update Device' : 'Save Device' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </ng-container>
+
   <ng-template #noData>
-    <div class="table-container" style="padding: 3rem; text-align: center;">
-      <p>Communicating with SQL Server... Please ensure the Backend is running.</p>
+    <div class="table-container" style="padding: 4rem; text-align: center;">
+      <p style="color: #605e5c;">No hardware records found. Use the form below to add a device.</p>
     </div>
   </ng-template>
+
 </div>

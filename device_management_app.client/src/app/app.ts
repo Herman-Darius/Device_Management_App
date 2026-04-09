@@ -13,21 +13,32 @@ export class App implements OnInit {
   // 1. Data Signals
   public readonly title = signal('Device Management System');
   public devices = signal<Device[]>([]);
-  public users = signal<any[]>([]); // Requirement: User list
+  public users = signal<any[]>([]);
+  public currentUser = signal<any | null>(null);
 
   // 2. State Variables
   public deviceForm!: FormGroup;
   public selectedDevice: Device | null = null;
   public isEditing = false;
   public currentEditId: number | null = null;
+  public showAuthForm = true;
+  public isRegisterMode = true;
+  public authForm!: FormGroup;
 
   constructor(private http: HttpClient, private fb: FormBuilder) {
     this.initForm();
   }
 
   ngOnInit() {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      this.currentUser.set(JSON.parse(savedUser));
+      this.showAuthForm = false;
+    } else {
+      this.showAuthForm = true;
+    }
     this.getDevices();
-    this.getUsers(); // Load users for the dropdown
+    this.getUsers();
   }
 
   private initForm() {
@@ -42,9 +53,66 @@ export class App implements OnInit {
       description: [''],
       assignedUserId: [null]
     });
+    this.authForm = this.fb.group({
+      name: [''], 
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required],
+      role: ['Employee'], 
+      location: ['Headquarters'] 
+    });
   }
 
   // --- API LOGIC ---
+  assignToMe(deviceId: number) {
+    const userId = this.currentUser()?.id;
+    if (!userId) return alert('Please login first.');
+
+    this.http.patch(`https://localhost:7249/api/devices/${deviceId}/assign/${userId}`, {}).subscribe({
+      next: () => {
+        this.getDevices();
+        alert('Device assigned to you successfully!');
+      },
+      error: (err) => alert(err.error || 'Assignment failed')
+    });
+  }
+
+  unassign(deviceId: number) {
+    this.http.patch(`https://localhost:7249/api/devices/${deviceId}/unassign`, {}).subscribe({
+      next: () => {
+        this.getDevices();
+        alert('Device released.');
+      },
+      error: (err) => alert('Release failed')
+    });
+  }
+
+  toggleAuthMode() {
+    this.isRegisterMode = !this.isRegisterMode;
+  }
+
+  onAuthSubmit() {
+    if (!this.authForm.valid) return;
+    const url = this.isRegisterMode ? 'register' : 'login';
+
+    this.http.post(`https://localhost:7249/api/account/${url}`, this.authForm.value).subscribe({
+      next: (user: any) => {
+        this.currentUser.set(user);
+        localStorage.setItem('user', JSON.stringify(user)); // Add this!
+        this.showAuthForm = false;
+        this.authForm.reset();
+        alert(this.isRegisterMode ? 'Account created!' : 'Logged in!');
+      },
+      error: (err) => alert(err.error || 'Authentication failed')
+    });
+  }
+
+  // Inside logout()
+  logout() {
+    this.currentUser.set(null);
+    localStorage.removeItem('user'); // Add this!
+    this.showAuthForm = true;
+    alert('Logged out');
+  }
 
   getDevices() {
     this.http.get<Device[]>('https://localhost:7249/api/devices').subscribe({
@@ -119,7 +187,6 @@ export class App implements OnInit {
     const deviceData = this.deviceForm.value;
 
     if (this.isEditing && this.currentEditId) {
-      // Logic for UPDATING (PUT)
       const updatedDevice = { ...deviceData, id: this.currentEditId };
       this.http.put(`https://localhost:7249/api/devices/${this.currentEditId}`, updatedDevice).subscribe({
         next: () => {

@@ -159,7 +159,7 @@ th:last-child, td:last-child {
 }
 
 .btn-danger {
-  background-color: #d83b01; /* Modern Office Red */
+  background-color: #d83b01; 
   color: white;
   border: none;
   padding: 0.5rem 1rem;
