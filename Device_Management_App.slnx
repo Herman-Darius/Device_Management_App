@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/Database/">
+    <File Path="CreateSchema.sql" />
+    <File Path="SeedData.sql" />
+  </Folder>
   <Project Path="device_management_app.client/device_management_app.client.esproj">
     <Build />
     <Deploy />

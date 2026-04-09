@@ -1,24 +1,118 @@
-﻿<h1 id="tableLabel">Weather forecast</h1>
+<div class="container">
+  <h1>{{ title() }}</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
-
-<p *ngIf="!forecasts"><em>Loading... Please refresh once the ASP.NET backend has started. See <a href="https://aka.ms/jspsintegrationangular">https://aka.ms/jspsintegrationangular</a> for more details.</em></p>
-
-<table *ngIf="forecasts">
-    <thead>
+  <div *ngIf="devices().length > 0; else noData" class="table-container">
+    <table>
+      <thead>
         <tr>
-            <th>Date</th>
-            <th>Temp. (C)</th>
-            <th>Temp. (F)</th>
-            <th>Summary</th>
+          <th>Name</th>
+          <th>Manufacturer</th>
+          <th>OS</th>
+          <th>User</th>
+          <th>Actions</th>
         </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let forecast of forecasts">
-            <td>{{ forecast.date }}</td>
-            <td>{{ forecast.temperatureC }}</td>
-            <td>{{ forecast.temperatureF }}</td>
-            <td>{{ forecast.summary }}</td>
+      </thead>
+      <tbody>
+        <tr *ngFor="let device of devices()">
+          <td><strong>{{ device.name }}</strong></td>
+          <td>{{ device.manufacturer }}</td>
+          <td>{{ device.os }} v{{ device.osVersion }}</td>
+          <td>
+            <span class="badge">
+              {{ device.assignedUser?.name || 'Unassigned' }}
+            </span>
+          </td>
+          <td>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-outline" (click)="selectDevice(device)">
+                {{ selectedDevice?.id === device.id ? 'Hide' : 'View' }}
+              </button>
+              <button class="btn btn-outline" (click)="editDevice(device)">Edit</button>
+              <button class="btn btn-danger" (click)="deleteDevice(device.id)">Delete</button>
+            </div>
+          </td>
         </tr>
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="selectedDevice" class="table-container" style="margin-top: 2rem; padding: 2rem; border-left: 4px solid var(--primary);">
+    <h2>Technical Specifications: {{ selectedDevice.name }}</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <p><strong>Processor:</strong> {{ selectedDevice.processor }}</p> <p><strong>RAM:</strong> {{ selectedDevice.ramAmount }}</p>       <p><strong>Full Description:</strong> {{ selectedDevice.description || 'No description provided.' }}</p>
+      <p><strong>Type:</strong> {{ selectedDevice.type }}</p>
+    </div>
+    <button class="btn btn-primary" (click)="selectedDevice = null" style="margin-top: 1rem;">Close Details</button>
+  </div>
+
+  <div class="table-container" *ngIf="deviceForm" style="margin-top: 2rem; padding: 2rem;">
+    <h2>{{ isEditing ? 'Edit Existing Device' : 'Add New Device' }}</h2>
+
+    <form [formGroup]="deviceForm!" (ngSubmit)="onSubmit()">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+
+        <div class="form-group">
+          <label>Device Name *</label>
+          <input formControlName="name" class="form-input" placeholder="e.g. Latitude 5420">
+        </div>
+
+        <div class="form-group">
+          <label>Manufacturer *</label>
+          <input formControlName="manufacturer" class="form-input" placeholder="e.g. Dell">
+        </div>
+
+        <div class="form-group">
+          <label>Processor *</label>
+          <input formControlName="processor" class="form-input" placeholder="e.g. Intel Core i7">
+        </div>
+
+        <div class="form-group">
+          <label>RAM Amount *</label>
+          <input formControlName="ramAmount" class="form-input" placeholder="e.g. 16GB">
+        </div>
+
+        <div class="form-group">
+          <label>Operating System *</label>
+          <input formControlName="os" class="form-input" placeholder="e.g. Windows">
+        </div>
+
+        <div class="form-group">
+          <label>OS Version *</label>
+          <input formControlName="osVersion" class="form-input" placeholder="e.g. 11">
+        </div>
+
+        <div class="form-group">
+          <label>Assign to User</label>
+          <select formControlName="assignedUserId" class="form-input">
+            <option [ngValue]="null">-- Unassigned --</option>
+            <option *ngFor="let user of users()" [ngValue]="user.id">
+              {{ user.name }} ({{ user.role }})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Description</label>
+          <textarea formControlName="description" class="form-input" rows="2" placeholder="Describe the device's condition or intended use..."></textarea>
+        </div>
+
+      </div>
+
+      <div class="button-row" style="gap: 1rem;">
+        <button *ngIf="isEditing" type="button" class="btn btn-outline" (click)="cancelEdit()">
+          Cancel Edit
+        </button>
+        <button type="submit" class="btn btn-success" [disabled]="!deviceForm.valid">
+          {{ isEditing ? 'Update Device' : 'Save Device to Database' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <ng-template #noData>
+    <div class="table-container" style="padding: 3rem; text-align: center;">
+      <p>Communicating with SQL Server... Please ensure the Backend is running.</p>
+    </div>
+  </ng-template>
+</div>
