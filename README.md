@@ -3,6 +3,26 @@
 An enterprise-grade solution for tracking, assigning, and managing corporate hardware assets. This full-stack application is built with a **.NET 10 Web API** backend and an **Angular** frontend, and includes AI-powered technical descriptions along with a custom weighted search engine.
 
 ---
+## Application Overview
+
+| Login Screen | Registration |
+|:---:|:---:|
+| <img src="ScreenShots/login.png" width="400"> | <img src="ScreenShots/register.png" width="400"> |
+
+| Main Dashboard & Search | Admin: User Role Management |
+|:---:|:---:|
+| <img src="ScreenShots/Search_and_view_devices.png" width="400"> | <img src="ScreenShots/role_management_form.png" width="400"> |
+
+| Register New Hardware | Edit Hardware Entry |
+|:---:|:---:|
+| <img src="ScreenShots/add_device_form.png" width="400"> | <img src="ScreenShots/edit_device_form.png" width="400"> |
+
+---
+
+## 🎥 Video Demo
+https://www.youtube.com/watch?v=tZD216nOKu4
+
+---
 
 ## Getting Started
 
@@ -32,23 +52,29 @@ cd Device_Management_App
 
 ### Configure Startup Projects (Visual Studio)
 
-1. Open `Device_Management_App.sln`.
-2. Right-click the **Solution** → select **Configure Startup Projects**.
-3. Choose **Multiple startup projects**.
-4. Set:
-   - `Device_Management_App.Server` → **Start** (move it to the top)
-   - `Device_Management_App.Client` → **Start**
+1. Open the solution file `Device_Management_App.sln`.
+2. Right-click the **Solution** in the Solution Explorer and select **Configure Startup Projects...**.
+
+   <img src="ScreenShots/Launch_Settings.png" width="500" alt="Launch Settings Menu">
+
+3. In the Property Pages window, select the **Multiple startup projects** radio button.
+4. Set the **Action** for both projects to **Start**.
+5. Use the arrow buttons on the right to move `Device_Management_App.Server` to the **top** of the list (ensuring the backend starts before the client).
+6. Click **Apply** and then **OK**.
+
+   <img src="ScreenShots/Startup_Profile.png" width="600" alt="Startup Configuration Window">
 
 ---
 
 ### Database Setup
 
-This application requires a local SQL Server instance.
-1. Execute:
-   - `CreateSchema.sql` → creates the database and tables
-   - `SeedData.sql` → populates initial users and hardware data
+This application requires a local SQL Server instance. The scripts are located within the `Database` folder in your solution explorer.
 
----
+<img src="ScreenShots/db_scripts.png" width="300" alt="Database Scripts Location">
+
+1. Open **SQL Server Management Studio (SSMS)**.
+2. Execute **`CreateSchema.sql`**: This creates the database and necessary table structures.
+3. Execute **`SeedData.sql`**: This populates the system with initial users and hardware data.
 
 ## Authentication
 
