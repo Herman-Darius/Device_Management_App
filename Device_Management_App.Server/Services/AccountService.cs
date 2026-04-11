@@ -45,18 +45,19 @@ public class AccountService : IAccountService
     private string GenerateJwtToken(User user)
     {
         var claims = new[] {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role),
-            new Claim("UserName", user.Name)
-        };
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Role, user.Role),
+        new Claim("UserName", user.Name)
+    };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("YourVeryLongSecretKey_MakeSureItIsAtLeast32Chars!")); //
+        var secretKey = _config["Jwt:Key"];
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: "DeviceApp",
-            audience: "DeviceAppUsers",
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
             claims: claims,
             expires: DateTime.Now.AddDays(1),
             signingCredentials: creds
