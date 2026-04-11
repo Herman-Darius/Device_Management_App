@@ -6,7 +6,7 @@ GO
 IF NOT EXISTS (SELECT * FROM Users WHERE Email = 'darius@example.com')
 BEGIN
     INSERT INTO Users (Name, Email, Password, Role, Location) 
-    VALUES ('Darius Herman', 'darius@example.com', 'admin', 'Admin', 'Headquarters');
+    VALUES ('Administrator', 'admin@example.com', 'admin', 'Admin', 'Headquarters');
 END
 
 IF NOT EXISTS (SELECT * FROM Users WHERE Email = 'john@example.com')
